@@ -1,5 +1,6 @@
 import { MODULE_BY_KEY } from '@/data/modules'
 import { allRows, listRows, resetRows, saveRows } from '@/data/local-store'
+import { resetDrainageDomain } from './drainage-service'
 import type { ActionResult, EntryRow, ModuleMeta, OverviewResult, PageResult } from '@/data/types'
 
 // 会写进数据的「往回走」动作：命中就把这条记录标成异常态，看板上能一眼看出来。
@@ -58,6 +59,11 @@ export function runAction(key: string, id: number, action: string): ActionResult
 
 export function resetModule(key: string): PageResult {
   resetRows(key)
+  // 排水是领域化模块：清单重置时遥测与待校准台账一起回到种子，再统一回算，三处不能错位。
+  if (key === 'drainage' || key === 'device') {
+    resetRows('drainage')
+    resetDrainageDomain()
+  }
   return listEntries(key)
 }
 
